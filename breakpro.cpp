@@ -17,6 +17,15 @@
 using namespace std;
 int screenWidth = 1200; 
 int screenHeight = 800;
+int blocks[800][800];
+int blockssize = 4;
+
+void clearblocks()
+{
+  for (int i=0;i < 800; i++ )
+         for (int j=0; j < 800; j++)
+           blocks[j][i] = 0;
+}
 
 Color HexToColour(int hexValue) {
     Color c;
@@ -268,11 +277,25 @@ void drawRetroCharOneColour(int previewx, int previewy, int psize, int bitwidth,
             {
               if (myarray[loc] != 0)
               {
-               DrawRectangle(previewx+j*(psize+gap),previewy+i*(psize+gap),psize,psize,Mycolour);    
+               DrawRectangle(previewx+j*(psize+gap),previewy+i*(psize+gap),psize,psize,Mycolour);  
               }
               loc++;
             }        
      }
+
+void drawcharinblocks(int previewx, int previewy, int bitwidth, int myarray[], Color Mycolour)
+     {
+       int loc = 0;
+       for (int i=0;i < bitwidth; i++ )
+         for (int j=0; j < bitwidth; j++)
+            {
+              if (myarray[loc] != 0)
+              {
+               blocks[previewx+j][previewy+i] = 1;    
+              }
+              loc++;
+            }        
+     }     
 
 void drawRetroChar(int previewx, int previewy, int psize, int bitwidth, int myarray[])
      {
@@ -393,8 +416,23 @@ void ShowColourText(int locx, int locy, string mytext, int psize, Color Mycolour
         value = digitarray[c - '0'];
        }
      if (c != ' ')
-        {drawRetroCharOneColour(locx+ i*8*(psize+1), locy, psize, 8, value, Mycolour);}
+        {
+          drawRetroCharOneColour(locx+ i*8*(psize+1), locy, psize, 8, value, Mycolour);
+          drawcharinblocks(locx+i*8, locy, 8, value, Mycolour);
+        }
    }
+}
+
+void drawblocks()
+{
+  for (int i = 0; i < 800; i++) 
+     for (int j = 0; j < 800; j++)
+     {
+      if (blocks[j][i] == 1)
+      {
+        DrawRectangle(j*(blockssize+1),i*(blockssize+1),blockssize,blockssize,rbwhite);   
+      }
+     } 
 }
 
 #pragma endregion
@@ -409,7 +447,7 @@ int main() {
     // To list all fonts installed:
     // find /usr/share/fonts -type f -name "*.ttf"
     // find ~/.local/share/fonts -type f -name "*.ttf"
- 
+    clearblocks();
     InitWindow(screenWidth, screenHeight, "Break Program"); // RNG seed is set randomly in InitWindow !!
     // create fonts AFTER InitWindow !!!!
     SetTargetFPS(60);
@@ -422,6 +460,7 @@ int main() {
         ShowColourText(90, 60,  "20 let i=1", 3, YELLOW);
         ShowColourText(90, 100, "30 let j=1", 3, YELLOW);
         ShowColourText(90, 140, "40 j=j+1", 3, YELLOW);
+        drawblocks();
         EndDrawing();
     }
 
