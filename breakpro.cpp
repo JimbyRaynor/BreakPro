@@ -19,6 +19,13 @@ int screenWidth = 1200;
 int screenHeight = 800;
 int blocks[800][800];
 int blockssize = 4;
+int ballx = 600;
+int bally = 800-50;
+int balldx = 0;
+int balldy = -1;
+int paddlex = 600;
+int paddley = 800-20;
+
 
 void clearblocks()
 {
@@ -417,8 +424,8 @@ void ShowColourText(int locx, int locy, string mytext, int psize, Color Mycolour
        }
      if (c != ' ')
         {
-          drawRetroCharOneColour(locx+ i*8*(psize+1), locy, psize, 8, value, Mycolour);
-          drawcharinblocks(locx+i*8, locy, 8, value, Mycolour);
+         // drawRetroCharOneColour(locx+ i*8*(psize+1), locy, psize, 8, value, Mycolour);
+          drawcharinblocks(locx/4+i*8, locy/4, 8, value, Mycolour);
         }
    }
 }
@@ -435,6 +442,17 @@ void drawblocks()
      } 
 }
 
+void drawpaddle()
+ {
+  DrawRectangle(paddlex-100,paddley,200,20,rbaqua); 
+ }
+
+ void drawball()
+ {
+  DrawRectangle(ballx-2,bally-2,4,4,rbaqua); 
+ }
+
+
 #pragma endregion
 
 
@@ -442,6 +460,29 @@ void drawblocks()
 Color rbbackgroundcolour = BLACK;
 Vector2 MousePos;
 
+void moveball()
+{
+  ballx = ballx + balldx;
+  bally = bally + balldy;
+}
+
+void testcollision()
+{
+  if (blocks[ballx/4][bally/4] == 1 or blocks[ballx/4+1][bally/4] == 1 or bally <= 0 or bally >= screenHeight)
+  {
+    balldy = -balldy;
+    bally = bally + balldy;
+    blocks[ballx/4][bally/4] = 0;
+    blocks[ballx/4][bally/4+1] = 0;
+    blocks[ballx/4][bally/4-1] = 0;
+    blocks[ballx/4+1][bally/4] = 0;
+    blocks[ballx/4+1][bally/4+1] = 0;
+    blocks[ballx/4+1][bally/4-1] = 0;
+    for (int i =0; i< 800;i++)
+        blocks[i][bally/4] = 0;
+    
+  }
+}
 
 int main() {
     // To list all fonts installed:
@@ -456,11 +497,16 @@ int main() {
         BeginDrawing();         // these two lines MUST go first when drawing
         ClearBackground(rbbackgroundcolour); // these two lines MUST go first when drawing
         MousePos = GetMousePosition();
+        paddlex = MousePos.x;
         ShowColourText(90, 20,  "10 rem test program", 3, YELLOW);
         ShowColourText(90, 60,  "20 let i=1", 3, YELLOW);
         ShowColourText(90, 100, "30 let j=1", 3, YELLOW);
-        ShowColourText(90, 140, "40 j=j+1", 3, YELLOW);
+        ShowColourText(90, 140, "40 j=j+1", 3, YELLOW); // need to create blocks at start of main (not in main loop)
         drawblocks();
+        drawpaddle();
+        drawball();
+        moveball();
+        testcollision();
         EndDrawing();
     }
 
