@@ -8,6 +8,14 @@
 #include <vector>
 #include <algorithm>
 
+
+#pragma region TODO
+// Breakout style
+// Blocks make Basic, Python, C++ programs AND Donald Knuth's Assembly Language MIX programs in the Art of Programming.
+// Program breaks at line n if symbol destroyed. 
+// Lose points as program continues to run
+#pragma endregion
+
 // compile: g++ breakpro.cpp -o breakpro -lraylib -lm -ldl -lpthread -lGL -lX11
 // run:     ./breakpro
 // Ctrl-C to close crashed program
@@ -19,12 +27,13 @@ int screenWidth = 1200;
 int screenHeight = 800;
 int blocks[800][800];
 int blockssize = 4;
-int ballx = 600;
+int ballx = 600-350;
 int bally = 800-50;
 int balldx = 0;
-int balldy = -1;
+int balldy = -4;
 int paddlex = 600;
 int paddley = 800-20;
+int xmargin = 90;
 
 
 void clearblocks()
@@ -120,6 +129,8 @@ Color resultcolour = rblightgreen;
 #pragma endregion
 
 
+
+
 #pragma region LED graphics arrays
 int CharBob[64] = {1,18,23,23,23,23,18,18,1,18,18,23,23,23,18,18,14,16,16,16,16,16,16,16,17,16,0,0,16,0,0,16,0,16,0,0,16,0,0,16,0,16,16,16,16,16,16,16,0,18,1,1,1,1,17,17,23,23,23,18,18,18,23,23};
 int CharEnemy1[64] = {5,0,0,17,0,0,0,5,0,5,0,0,17,0,5,0,5,0,11,17,0,11,0,5,0,5,5,5,5,5,5,0,5,5,5,5,5,5,5,5,5,5,24,33,24,33,5,5,5,5,5,5,5,5,5,5,0,5,5,5,5,5,5,0};
@@ -192,6 +203,8 @@ int* digitarray[10] = {Char0, Char1, Char2, Char3,  // array of pointers to char
 int* alphaarray[26] = {CharA, CharB, CharC, CharD, CharE, CharF, CharG, CharH, CharI, CharJ, CharK, CharL, CharM, CharN, CharO, CharP, CharQ, 
                        CharR, CharS, CharT, CharU, CharV, CharW, CharX, CharY, CharZ}; 
 #pragma endregion
+
+
 
 
 #pragma region Draw Functions
@@ -468,20 +481,20 @@ void moveball()
 
 void testcollision()
 {
-  if (blocks[ballx/4][bally/4] == 1 or blocks[ballx/4+1][bally/4] == 1 or bally <= 0 or bally >= screenHeight)
+  int bx = ballx/(blockssize+1);
+  int by = bally/(blockssize+1);
+  //blocks[bx][by] = 1;
+  
+  if (blocks[bx][by] == 1 or bally <= 0 or bally >= screenHeight)
   {
+    blocks[bx][by] = 0;
+
     balldy = -balldy;
     bally = bally + balldy;
-    blocks[ballx/4][bally/4] = 0;
-    blocks[ballx/4][bally/4+1] = 0;
-    blocks[ballx/4][bally/4-1] = 0;
-    blocks[ballx/4+1][bally/4] = 0;
-    blocks[ballx/4+1][bally/4+1] = 0;
-    blocks[ballx/4+1][bally/4-1] = 0;
-    for (int i =0; i< 800;i++)
-        blocks[i][bally/4] = 0;
+    
     
   }
+
 }
 
 int main() {
@@ -492,16 +505,17 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Break Program"); // RNG seed is set randomly in InitWindow !!
     // create fonts AFTER InitWindow !!!!
     SetTargetFPS(60);
+    ShowColourText(xmargin, 20,  "10 rem test program", 3, YELLOW);
+    ShowColourText(xmargin, 60,  "20 let i=1", 3, YELLOW);
+    ShowColourText(xmargin, 100, "30 let j=1", 3, YELLOW);
+    ShowColourText(xmargin, 140, "40 j=j+1", 3, YELLOW); // need to create blocks at start of main (not in main loop)
     while (!WindowShouldClose()) 
     {
         BeginDrawing();         // these two lines MUST go first when drawing
         ClearBackground(rbbackgroundcolour); // these two lines MUST go first when drawing
         MousePos = GetMousePosition();
         paddlex = MousePos.x;
-        ShowColourText(90, 20,  "10 rem test program", 3, YELLOW);
-        ShowColourText(90, 60,  "20 let i=1", 3, YELLOW);
-        ShowColourText(90, 100, "30 let j=1", 3, YELLOW);
-        ShowColourText(90, 140, "40 j=j+1", 3, YELLOW); // need to create blocks at start of main (not in main loop)
+  
         drawblocks();
         drawpaddle();
         drawball();
