@@ -10,7 +10,9 @@
 
 
 #pragma region TODO
+// Put BreakPro in TRON
 // Breakout style
+// spare balls inside paddle? hit spare ball to deploy?
 // Blocks make Basic, Python, C++ programs AND Donald Knuth's Assembly Language MIX programs in the Art of Programming.
 // Program breaks at line n if symbol destroyed. 
 // Lose points as program continues to run
@@ -29,11 +31,14 @@ int blocks[800][800];
 int blockssize = 4;
 int ballx = 600-350;
 int bally = 800-50;
+float radius = 10;
 int balldx = 0;
 int balldy = -4;
+int paddlewidth = 200;
+int paddleheight = 20;
 int paddlex = 600;
-int paddley = 800-20;
-int xmargin = 90;
+int paddley = screenHeight-paddleheight;
+int xmargin = 190;
 
 
 void clearblocks()
@@ -457,12 +462,31 @@ void drawblocks()
 
 void drawpaddle()
  {
-  DrawRectangle(paddlex-100,paddley,200,20,rbaqua); 
+  DrawRectangle(paddlex-paddlewidth/2,paddley,paddlewidth,paddleheight,rbaqua); 
  }
 
  void drawball()
  {
-  DrawRectangle(ballx-2,bally-2,4,4,rbaqua); 
+  // DrawRectangle(ballx-2,bally-2,4,4,rbaqua); 
+  DrawCircleGradient(ballx,bally, radius, Color{60,60,60,255}, Color{120,120,120,255});
+  Rectangle streak = {
+            ballx - radius * 0.9f,
+            bally - radius * 0.25f,
+            radius * 1.8f,
+            radius * 0.25f
+        };
+  DrawRectangleGradientH(streak.x, streak.y, streak.width, streak.height,
+                               Color{255,255,255,180},   // bright edge
+                               Color{180,180,180,10});   // fade out
+
+        // 3. Soft circular highlight (glossy spot)
+   DrawCircle(ballx - radius*0.35f,
+                   bally - radius*0.35f,
+                   radius*0.22f,
+                   Color{255,255,255,120});
+
+        // Optional outline
+  //  DrawCircleLines(ballx, bally, radius, WHITE);
  }
 
 
@@ -479,20 +503,71 @@ void moveball()
   bally = bally + balldy;
 }
 
+
+void blowupx(int xsize, int x, int y)
+{
+ int r;
+ for (int i = 0;i < xsize;i++)
+    {
+      r = xsize -(rand() % (2*xsize-1));
+      blocks[x-r][y] = 0;
+    }  
+}
+void blowupy(int ysize, int x, int y)
+{
+ int r;
+ for (int i = 0;i < ysize;i++)
+    {
+      r = ysize -(rand() % (2*ysize-1));
+      blocks[x][y+r] = 0;
+    }  
+}
+
+
 void testcollision()
 {
   int bx = ballx/(blockssize+1);
   int by = bally/(blockssize+1);
-  //blocks[bx][by] = 1;
-  
-  if (blocks[bx][by] == 1 or bally <= 0 or bally >= screenHeight)
+  int sdy = balldy/abs(balldy); // sign + or - of balldy
+  int sdx = balldx/abs(balldx);
+  int raddy = int((radius*sdy)/(blockssize+1));
+  int raddx = int((radius*sdx)/(blockssize+1));
+  int r;
+  if (blocks[bx][ by+raddy ] == 1 or blocks[bx-1][ by+raddy ] == 1 or blocks[bx+1][ by+raddy ] == 1)
   {
-    blocks[bx][by] = 0;
-
+    blocks[bx][by+raddy] = 0;
+    blowupx(4,bx,by+raddy);
+    blowupx(3,bx,by+raddy+1*sdy);
+    blowupx(2,bx,by+raddy+2*sdy); 
     balldy = -balldy;
-    bally = bally + balldy;
-    
-    
+    bally = bally + balldy; 
+  }
+  if (blocks[bx+raddx][ by ] == 1 or blocks[bx+raddx][ by-1] == 1 or blocks[bx+raddx][ by+1 ] == 1)
+  {
+    blocks[bx+raddx][by] = 0;
+    blowupy(4,bx+raddx,by);
+    blowupy(3,bx+raddx+1*sdx,by);
+    blowupy(2,bx+raddx+2*sdx,by); 
+    balldx = -balldx;
+    ballx = ballx + balldx; 
+  }
+
+  if (bally-radius <= 0) // hit top
+  {
+    balldy = -balldy;
+    bally = bally + balldy; 
+  }
+
+  // hit bottom
+  if (bally+radius >= screenHeight-paddleheight)
+  {
+    if (abs(ballx-paddlex)<paddlewidth)  // hit paddle
+      {balldx = (ballx-paddlex)/10;}
+    balldy = -balldy;
+  }
+  if ( (ballx-radius < 0) or (ballx+radius > screenWidth) )
+  {
+    balldx = -balldx;
   }
 
 }
@@ -505,10 +580,10 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Break Program"); // RNG seed is set randomly in InitWindow !!
     // create fonts AFTER InitWindow !!!!
     SetTargetFPS(60);
-    ShowColourText(xmargin, 20,  "10 rem test program", 3, YELLOW);
-    ShowColourText(xmargin, 60,  "20 let i=1", 3, YELLOW);
-    ShowColourText(xmargin, 100, "30 let j=1", 3, YELLOW);
-    ShowColourText(xmargin, 140, "40 j=j+1", 3, YELLOW); // need to create blocks at start of main (not in main loop)
+    ShowColourText(xmargin, 20+100,  "10 rem test program", 3, YELLOW);
+    ShowColourText(xmargin, 60+100,  "20 let i=1", 3, YELLOW);
+    ShowColourText(xmargin, 100+100, "30 let j=1", 3, YELLOW);
+    ShowColourText(xmargin, 140+100, "40 j=j+1", 3, YELLOW); // need to create blocks at start of main (not in main loop)
     while (!WindowShouldClose()) 
     {
         BeginDrawing();         // these two lines MUST go first when drawing
