@@ -13,7 +13,7 @@
 // Put BreakPro in TRON
 // Put computer chips and circuit board under text. Need to hit computer chips to disable computer
    // same for TRON !!!
-// Add  pinball features: multiball, bonuses, stories, rollovers, etc.
+// Add  pinball features: multiball, bonuses, stories, rollovers, flashing lights etc.
 // spare balls inside paddle? hit spare ball to deploy?
 // Blocks make Basic, Python, C++ programs AND Donald Knuth's Assembly Language MIX programs in the Art of Programming.
 // Program breaks at line n if symbol destroyed. 
@@ -31,9 +31,9 @@ int screenWidth = 1200;
 int screenHeight = 800;
 int blocks[800][800];
 int blockssize = 4;
-int ballx = 600-350;
-int bally = 800-50;
-float radius = 10;
+float ballx = 600-350;
+float bally = 800-50;
+float ballradius = 10;
 int balldx = 0;
 int balldy = -4;
 int paddlewidth = 200;
@@ -500,21 +500,21 @@ void drawpaddle()
  void drawball()
  {
   // DrawRectangle(ballx-2,bally-2,4,4,rbaqua); 
-  DrawCircleGradient(ballx,bally, radius, Color{60,60,60,255}, Color{120,120,120,255});
+  DrawCircleGradient(ballx,bally, ballradius, Color{60,60,60,255}, Color{120,120,120,255});
   Rectangle streak = {
-            ballx - radius * 0.9f,
-            bally - radius * 0.25f,
-            radius * 1.8f,
-            radius * 0.25f
+            ballx - ballradius * 0.9f,
+            bally - ballradius * 0.25f,
+            ballradius * 1.8f,
+            ballradius * 0.25f
         };
   DrawRectangleGradientH(streak.x, streak.y, streak.width, streak.height,
                                Color{255,255,255,180},   // bright edge
                                Color{180,180,180,10});   // fade out
 
         // 3. Soft circular highlight (glossy spot)
-   DrawCircle(ballx - radius*0.35f,
-                   bally - radius*0.35f,
-                   radius*0.22f,
+   DrawCircle(ballx - ballradius*0.35f,
+                   bally - ballradius*0.35f,
+                   ballradius*0.22f,
                    Color{255,255,255,120});
 
         // Optional outline
@@ -535,7 +535,8 @@ class Chip
      Chip(int startx, int starty); // constructor, *must* be named the same as the class
      int draw();
      bool collisionwithball();
-     int x,y;
+     float x,y;
+     float collisionx=0, collisiony=20, collisionwidth=38, collisionheight=35;
   private:
 };
 
@@ -548,12 +549,13 @@ Chip::Chip(int startx, int starty) // constructor, *must* be named the same as t
 int Chip::draw()
 {
   drawCharfromArray(x,y,2,32,CharChip);
+  DrawRectangleLines(x+collisionx,y+collisiony,collisionwidth, collisionheight,WHITE);
   return 0;
 }
 
 bool Chip::collisionwithball()
 {
-  if (y > bally)
+  if (  CheckCollisionCircleRec({ballx,bally}, ballradius,{x+collisionx,y+collisiony,collisionwidth, collisionheight} )  )
     return  true;
   return false;
 }
@@ -596,8 +598,8 @@ void testcollisionwithblocks()
   int by = bally/(blockssize+1);
   int sdy = balldy/abs(balldy); // sign + or - of balldy
   int sdx = balldx/abs(balldx);
-  int raddy = int((radius*sdy)/(blockssize+1));
-  int raddx = int((radius*sdx)/(blockssize+1));
+  int raddy = int((ballradius*sdy)/(blockssize+1));
+  int raddx = int((ballradius*sdx)/(blockssize+1));
   int r;
   if (blocks[bx][ by+raddy ] == 1 or blocks[bx-1][ by+raddy ] == 1 or blocks[bx+1][ by+raddy ] == 1)
   {
@@ -618,20 +620,20 @@ void testcollisionwithblocks()
     ballx = ballx + balldx; 
   }
 
-  if (bally-radius <= 0) // hit top
+  if (bally-ballradius <= 0) // hit top
   {
     balldy = -balldy;
     bally = bally + balldy; 
   }
 
   // hit bottom
-  if (bally+radius >= screenHeight-paddleheight)
+  if (bally+ballradius >= screenHeight-paddleheight)
   {
     if (abs(ballx-paddlex)<paddlewidth)  // hit paddle
       {balldx = (ballx-paddlex)/10;}
     balldy = -balldy;
   }
-  if ( (ballx-radius < 0) or (ballx+radius > screenWidth) )
+  if ( (ballx-ballradius < 0) or (ballx+ballradius > screenWidth) )
   {
     balldx = -balldx;
   }
